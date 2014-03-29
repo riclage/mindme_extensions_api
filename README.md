@@ -19,6 +19,9 @@ Extensions are currently only supported on AlarmPad's test version. You can get 
 ## Example
 Please visit [https://github.com/riclage/quotes_extension](https://github.com/riclage/quotes_extension) for a full working example.
 
+## API reference
+For more details about the API, please refer to the docs [here](http://riclage.github.io/extensions-api/).
+
 ## Get help
 Please contact me at any time if you need any help at alarmpad (at) mindmeapp (dot) com.
 
