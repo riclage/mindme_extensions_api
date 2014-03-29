@@ -87,6 +87,8 @@ public class ExtensionData implements Parcelable {
     private static final String KEY_LANGUAGE_TO_SPEAK = "language_to_speak";
     private static final String KEY_VIEWS_TO_DISPLAY = "views_to_display";
     private static final String KEY_CONTENT_DESCRIPTION = "content_description";
+    private static final String KEY_BACKGROUND = "background";
+    private static final String KEY_BACKGROUND_URI = "background_uri";
     
     /**
      * These keys are used when serializing the Locale object in its decomposed elements
@@ -118,6 +120,8 @@ public class ExtensionData implements Parcelable {
     private Locale mLanguageToSpeak = null;
     private RemoteViews mViewsToDisplay = null;
     private String mContentDescription = null;
+    private int mBackground = 0;
+    private Uri mBackgroundUri = null;
 
     public ExtensionData() {
     }
@@ -179,6 +183,47 @@ public class ExtensionData implements Parcelable {
         mIconUri = iconUri;
         return this;
     }
+    
+    /**
+     * Returns the ID of the drawable resource within the extension's package to be used as 
+     * background on display. Default 0.
+     */
+    public int background() {
+        return mBackground;
+    }
+
+    /**
+     * Sets the ID of the drawable resource within the extension's package that represents a
+     * background for the display. If this drawable is an image, there is no way to guarantee
+     * that it will fit all devices so it might be scaled or cropped to fit. 
+     * If an {@link #backgroundUri(Uri) backgroundUri} is provided, it
+     * will take precedence over this value. Default 0.
+     *
+     * @see #iconUri(Uri)
+     */
+    public ExtensionData background(int background) {
+        mBackground = background;
+        return this;
+    }
+
+    /**
+     * Returns the content:// URI of a bitmap to be used as background on display. Default null.
+     */
+    public Uri backgroundUri() {
+        return mBackgroundUri;
+    }
+
+    /**
+     * Sets the content:// URI of the bitmap representing a background to display. This takes precedence over
+     * the regular {@link #background(int) background resource ID} if set. This resource will be loaded
+     * using {@link android.content.ContentResolver#openFileDescriptor(android.net.Uri, String)} and
+     * {@link android.graphics.BitmapFactory#decodeFileDescriptor(java.io.FileDescriptor)}. See the
+     * {@link #background(int) background} method for guidelines on the styling of this bitmap.
+     */
+    public ExtensionData backgroundUri(Uri backgroundUri) {
+    	mBackgroundUri = backgroundUri;
+        return this;
+    }    
 
     /**
      * Returns the string to be displayed to the user.
@@ -280,6 +325,8 @@ public class ExtensionData implements Parcelable {
         data.put(KEY_STATUS_TO_DISPLAY, mStatusToDisplay);
         data.put(KEY_STATUS_TO_SPEAK, mStatusToSpeak);
         data.put(KEY_CONTENT_DESCRIPTION, mContentDescription);
+        data.put(KEY_BACKGROUND, mBackground);
+        data.put(KEY_BACKGROUND_URI, (mBackgroundUri == null ? null : mBackgroundUri.toString()));
         
         //Decompose Locale object
         data.put(KEY_LOCALE_LANGUAGE, mLanguageToSpeak.getLanguage());
@@ -300,6 +347,9 @@ public class ExtensionData implements Parcelable {
         this.mStatusToDisplay = data.optString(KEY_STATUS_TO_DISPLAY);
         this.mStatusToSpeak = data.optString(KEY_STATUS_TO_SPEAK);
         this.mContentDescription = data.optString(KEY_CONTENT_DESCRIPTION);
+        this.mBackground = data.optInt(KEY_BACKGROUND);
+        String backgroundUriString = data.optString(KEY_BACKGROUND_URI);
+        this.mBackgroundUri = TextUtils.isEmpty(backgroundUriString) ? null : Uri.parse(backgroundUriString);
         
         //Build back the Locale object
         String language = data.optString(KEY_LOCALE_LANGUAGE);
@@ -325,6 +375,8 @@ public class ExtensionData implements Parcelable {
         data.putParcelable(KEY_VIEWS_TO_DISPLAY, mViewsToDisplay);
         data.putString(KEY_CONTENT_DESCRIPTION, mContentDescription);
         data.putSerializable(KEY_LANGUAGE_TO_SPEAK, mLanguageToSpeak);
+        data.putInt(KEY_BACKGROUND, mBackground);
+        data.putString(KEY_BACKGROUND_URI, (mBackgroundUri == null ? null : mBackgroundUri.toString()));
         return data;
     }
 
@@ -342,6 +394,9 @@ public class ExtensionData implements Parcelable {
         this.mLanguageToSpeak = (Locale) src.getSerializable(KEY_LANGUAGE_TO_SPEAK);
         this.mViewsToDisplay = src.getParcelable(KEY_VIEWS_TO_DISPLAY);
         this.mContentDescription = src.getString(KEY_CONTENT_DESCRIPTION);
+        this.mBackground = src.getInt(KEY_BACKGROUND);
+        String backgroundUriString = src.getString(KEY_BACKGROUND_URI);
+        this.mBackgroundUri = TextUtils.isEmpty(backgroundUriString) ? null : Uri.parse(backgroundUriString);
     }
 
     /**
@@ -382,6 +437,10 @@ public class ExtensionData implements Parcelable {
         if (TextUtils.isEmpty(this.mContentDescription)) {
         	this.mContentDescription = null;
         }
+        
+        this.mBackground = in.readInt();
+        String backgroundUriString = in.readString();
+        this.mBackgroundUri = TextUtils.isEmpty(backgroundUriString) ? null : Uri.parse(backgroundUriString);
     }
 
     @Override
@@ -400,6 +459,8 @@ public class ExtensionData implements Parcelable {
         parcel.writeSerializable(mLanguageToSpeak);
         parcel.writeParcelable(mViewsToDisplay, i);
         parcel.writeString(TextUtils.isEmpty(mContentDescription) ? "" : mContentDescription);
+        parcel.writeInt(mBackground);
+        parcel.writeString(mBackgroundUri == null ? "" : mBackgroundUri.toString());
     }
 
     @Override
@@ -423,7 +484,9 @@ public class ExtensionData implements Parcelable {
                     && TextUtils.equals(other.mStatusToSpeak, mStatusToSpeak)
                     && objectEquals(other.mLanguageToSpeak, mLanguageToSpeak)
                     && objectEquals(other.mViewsToDisplay, mViewsToDisplay)
-                    && TextUtils.equals(other.mContentDescription, mContentDescription);
+                    && TextUtils.equals(other.mContentDescription, mContentDescription)
+                    && other.mBackground == mBackground
+                    && objectEquals(other.mBackgroundUri, mBackgroundUri);
 
         } catch (ClassCastException e) {
             return false;
